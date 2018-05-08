@@ -8,6 +8,6 @@ Aplikasi mobile berbasis Android untuk melakukan random hero game "Mobile Legend
 4. Group Random
 
 # Team
-Komang Arinanda
-Bobby Pratama
-Alfian Putra Persada
+1. Komang Arinanda
+2. Bobby Pratama
+3. Alfian Putra Persada
