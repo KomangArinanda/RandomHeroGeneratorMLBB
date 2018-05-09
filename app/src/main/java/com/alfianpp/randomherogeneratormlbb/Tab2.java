@@ -4,9 +4,21 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -27,7 +39,14 @@ public class Tab2 extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    private TextView hero_name;
+    private TextView hero_role;
+    private TextView hero_speciality;
+    private ImageView hero_image;
+
     private OnFragmentInteractionListener mListener;
+
+    private List<String> all_heroes = new ArrayList<>();
 
     public Tab2() {
         // Required empty public constructor
@@ -64,7 +83,14 @@ public class Tab2 extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_tab2, container, false);
+        View view=inflater.inflate(R.layout.fragment_tab2, container, false);
+        hero_name = view.findViewById(R.id.txtHeroName);
+        hero_role = view.findViewById(R.id.txtHeroRole);
+        hero_speciality = view.findViewById(R.id.txtHeroSpeciality);
+        hero_image = view.findViewById(R.id.imgHeroHead);
+        initializeAllHeroes();
+        doAllRandom();
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -104,5 +130,75 @@ public class Tab2 extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    private void initializeAllHeroes() {
+        String line;
+
+        InputStream is = getResources().openRawResource(R.raw.heroes_mlbb);
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(is, Charset.forName("UTF-8"))
+        );
+
+        try {
+            while((line = reader.readLine()) != null){
+                all_heroes.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        all_heroes.remove(0);
+    }
+
+    private void doAllRandom(){
+        List<List<String>> selectedHeros = new ArrayList<>();
+        for(int i=0; i<2; i++) {
+            List<String> selected_hero = getSelectedHeroData(getRandomList(all_heroes));
+            selectedHeros.add(selected_hero);
+        }
+
+        showSelectedHero(selectedHeros);
+    }
+
+    private List<String> getSelectedHeroData(String selected_hero){
+        List<String> list = new ArrayList<>();
+
+        String[] hero_data = selected_hero.split(",");
+        for(int i=0; i<hero_data.length; i++){
+            list.add(hero_data[i]);
+        }
+
+        return list;
+    }
+
+    private String getRandomList(List<String> list){
+        Random random = new Random();
+
+        return list.get(random.nextInt(list.size()));
+    }
+
+    private void showSelectedHero(List<List<String>> selectedHeros){
+        int count = 0;
+        for (List<String> selected_hero : selectedHeros){
+            count++;
+            if(count==1)
+                showNumberOne(selected_hero);
+        }
+    }
+
+    private void showNumberOne(List<String> selected_hero){
+        hero_image.setImageResource(hero_image.getContext().getResources().getIdentifier("img_hero_head_id"+selected_hero.get(0), "drawable", hero_image.getContext().getPackageName()));
+        hero_name.setText(selected_hero.get(1));
+        if(TextUtils.isEmpty(selected_hero.get(3))){
+            hero_role.setText(selected_hero.get(2));
+        }else{
+            hero_role.setText(selected_hero.get(2) + "/" + selected_hero.get(3));
+        }
+        if(TextUtils.isEmpty(selected_hero.get(5))){
+            hero_speciality.setText(selected_hero.get(4));
+        }else{
+            hero_speciality.setText(selected_hero.get(4) + "/" + selected_hero.get(5));
+        }
     }
 }
