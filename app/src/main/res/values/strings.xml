@@ -3,4 +3,13 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+        <string name="developer">Application by KBATech</string>
+        <string name="menu1">Random Team</string>
+        <string name="menu2">Random All</string>
+        <string name="menu3">Random by Speciality</string>
+        <string name="menu4">Random by Role</string>
+
+
 </resources>
