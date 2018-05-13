@@ -2,9 +2,15 @@ package com.alfianpp.randomherogeneratormlbb;
 
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.google.android.gms.ads.AdRequest;
@@ -22,50 +28,43 @@ import java.util.Random;
 
 import com.alfianpp.randomherogeneratormlbb.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private ActivityMainBinding binding;
+
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mToggle;
+    private NavigationView navigationView;
     private AdView mAdView;
 
-    private List<String> all_heroes = new ArrayList<>();
-    private List<String> tank_heroes = new ArrayList<>();
-    private List<String> fighter_heroes = new ArrayList<>();
-    private List<String> assassin_heroes = new ArrayList<>();
-    private List<String> mage_heroes = new ArrayList<>();
-    private List<String> marksman_heroes = new ArrayList<>();
-    private List<String> support_heroes = new ArrayList<>();
-    private List<String> charge_heroes = new ArrayList<>();
-    private List<String> burst_heroes = new ArrayList<>();
-    private List<String> damage_heroes = new ArrayList<>();
-    private List<String> push_heroes = new ArrayList<>();
-    private List<String> reap_heroes = new ArrayList<>();
-    private List<String> regen_heroes = new ArrayList<>();
-    private List<String> poke_heroes = new ArrayList<>();
-    private List<String> cc_heroes = new ArrayList<>();
-    private List<String> initiator_heroes = new ArrayList<>();
+    private ArrayList<String> all_heroes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
+        Bundle bundle = getIntent().getExtras();
+        if(!bundle.isEmpty()){
+            all_heroes = bundle.getStringArrayList("all_heroes");
+        }
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+        navigationView.setNavigationItemSelectedListener(this);
+        navigationView.setCheckedItem(R.id.nav_random_all);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         MobileAds.initialize(this, "ca-app-pub-7582061309581400~2116909334");
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
 
-        initializeAllHeroes();
-        initializeHeroesByRole();
-        initializeHeroesBySpeciality();
         doAllRandom();
-
-        binding.btnGroupRandom.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent grup = new Intent(MainActivity.this, SecondActivity.class);
-
-                startActivity(grup);
-            }
-        });
 
         binding.btnAllRandom.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,194 +72,43 @@ public class MainActivity extends AppCompatActivity {
                 doAllRandom();
             }
         });
-
-        binding.btnRandomTank.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomByRole("Tank");
-            }
-        });
-
-        binding.btnRandomFighter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomByRole("Fighter");
-            }
-        });
-
-        binding.btnRandomAssassin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomByRole("Assassin");
-            }
-        });
-
-        binding.btnRandomMage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomByRole("Mage");
-            }
-        });
-
-        binding.btnRandomMarksman.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomByRole("Marksman");
-            }
-        });
-
-        binding.btnRandomSupport.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomByRole("Support");
-            }
-        });
-
-        binding.btnRandomCharge.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Charge");
-            }
-        });
-
-        binding.btnRandomBurst.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Burst");
-            }
-        });
-
-        binding.btnRandomDamage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Damage");
-            }
-        });
-
-        binding.btnRandomPush.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Push");
-            }
-        });
-
-        binding.btnRandomReap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Reap");
-            }
-        });
-
-        binding.btnRandomRegen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Regen");
-            }
-        });
-
-        binding.btnRandomPoke.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Poke");
-            }
-        });
-
-        binding.btnRandomCC.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Crowd Control");
-            }
-        });
-
-        binding.btnRandomInitiator.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doRandomBySpeciality("Initiator");
-            }
-        });
     }
 
-    private void initializeAllHeroes() {
-        String line;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(mToggle.onOptionsItemSelected(item)){
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
-        InputStream is = getResources().openRawResource(R.raw.heroes_mlbb);
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(is, Charset.forName("UTF-8"))
-        );
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.nav_random_by_role: {
+                Intent intent = new Intent(MainActivity.this, RandomByRoleActivity.class);
+                Bundle bundle = new Bundle();
 
-        try {
-            while((line = reader.readLine()) != null){
-                all_heroes.add(line);
+                bundle.putStringArrayList("all_heroes", all_heroes);
+                intent.putExtras(bundle);
+                startActivity(intent);
+                finish();
+                break;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        all_heroes.remove(0);
-    }
+            case R.id.nav_random_by_speciality: {
+                Intent intent = new Intent(MainActivity.this, RandomBySpecialityActivity.class);
+                Bundle bundle = new Bundle();
 
-    private void initializeHeroesByRole(){
-        List<String> hero_data;
-
-        for(int i=0; i<all_heroes.size(); i++){
-            hero_data = getSelectedHeroData(all_heroes.get(i));
-
-            addHeroByRoleToList(all_heroes.get(i), hero_data.get(2));
-            if(!TextUtils.isEmpty(hero_data.get(3))){
-                addHeroByRoleToList(all_heroes.get(i), hero_data.get(3));
-            }
-        }
-    }
-
-    private void addHeroByRoleToList(String hero, String role){
-        if(role.equals("Tank")){
-            tank_heroes.add(hero);
-        }else if(role.equals("Fighter")){
-            fighter_heroes.add(hero);
-        }else if(role.equals("Assassin")){
-            assassin_heroes.add(hero);
-        }else if(role.equals("Mage")){
-            mage_heroes.add(hero);
-        }else if(role.equals("Marksman")){
-            marksman_heroes.add(hero);
-        }else if(role.equals("Support")){
-            support_heroes.add(hero);
-        }
-    }
-
-    private void initializeHeroesBySpeciality(){
-        List<String> hero_data;
-
-        for(int i=0; i<all_heroes.size(); i++){
-            hero_data = getSelectedHeroData(all_heroes.get(i));
-
-            addHeroBySpecialityToList(all_heroes.get(i), hero_data.get(4));
-            if(!TextUtils.isEmpty(hero_data.get(5))){
-                addHeroBySpecialityToList(all_heroes.get(i), hero_data.get(5));
+                bundle.putStringArrayList("all_heroes", all_heroes);
+                intent.putExtras(bundle);
+                startActivity(intent);
+                finish();
+                break;
             }
         }
-    }
-
-    private void addHeroBySpecialityToList(String hero, String speciality){
-        if(speciality.equals("Charge")){
-            charge_heroes.add(hero);
-        }else if(speciality.equals("Burst")){
-            burst_heroes.add(hero);
-        }else if(speciality.equals("Damage")){
-            damage_heroes.add(hero);
-        }else if(speciality.equals("Push")){
-            push_heroes.add(hero);
-        }else if(speciality.equals("Reap")){
-            reap_heroes.add(hero);
-        }else if(speciality.equals("Regen")){
-            regen_heroes.add(hero);
-        }else if(speciality.equals("Poke")){
-            poke_heroes.add(hero);
-        }else if(speciality.equals("Crowd Control")){
-            cc_heroes.add(hero);
-        }else if(speciality.equals("Initiator")){
-            initiator_heroes.add(hero);
-        }
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 
     private List<String> getSelectedHeroData(String selected_hero){
@@ -274,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         return list;
     }
 
-    private String getRandomList(List<String> list){
+    private String getRandomHero(List<String> list){
         Random random = new Random();
 
         return list.get(random.nextInt(list.size()));
@@ -293,56 +141,13 @@ public class MainActivity extends AppCompatActivity {
         }else{
             binding.txtHeroSpeciality.setText(selected_hero.get(4) + "/" + selected_hero.get(5));
         }
+        binding.txtBattlePoints.setText(selected_hero.get(6));
+        binding.txtDiamonds.setText(selected_hero.get(7));
+        binding.txtTickets.setText(selected_hero.get(8));
     }
 
     private void doAllRandom(){
-        List<String> selected_hero = getSelectedHeroData(getRandomList(all_heroes));
-
-        showSelectedHero(selected_hero);
-    }
-
-    private void doRandomByRole(String role){
-        List<String> selected_hero = new ArrayList<>();
-
-        if(role.equals("Tank")){
-            selected_hero = getSelectedHeroData(getRandomList(tank_heroes));
-        }else if(role.equals("Fighter")){
-            selected_hero = getSelectedHeroData(getRandomList(fighter_heroes));
-        }else if(role.equals("Assassin")){
-            selected_hero = getSelectedHeroData(getRandomList(assassin_heroes));
-        }else if(role.equals("Mage")){
-            selected_hero = getSelectedHeroData(getRandomList(mage_heroes));
-        }else if(role.equals("Marksman")){
-            selected_hero = getSelectedHeroData(getRandomList(marksman_heroes));
-        }else if(role.equals("Support")){
-            selected_hero = getSelectedHeroData(getRandomList(support_heroes));
-        }
-
-        showSelectedHero(selected_hero);
-    }
-
-    private void doRandomBySpeciality(String speciality){
-        List<String> selected_hero = new ArrayList<>();
-
-        if(speciality.equals("Charge")){
-            selected_hero = getSelectedHeroData(getRandomList(charge_heroes));
-        }else if(speciality.equals("Burst")){
-            selected_hero = getSelectedHeroData(getRandomList(burst_heroes));
-        }else if(speciality.equals("Damage")){
-            selected_hero = getSelectedHeroData(getRandomList(damage_heroes));
-        }else if(speciality.equals("Push")){
-            selected_hero = getSelectedHeroData(getRandomList(push_heroes));
-        }else if(speciality.equals("Reap")){
-            selected_hero = getSelectedHeroData(getRandomList(reap_heroes));
-        }else if(speciality.equals("Regen")){
-            selected_hero = getSelectedHeroData(getRandomList(regen_heroes));
-        }else if(speciality.equals("Poke")){
-            selected_hero = getSelectedHeroData(getRandomList(poke_heroes));
-        }else if(speciality.equals("Crowd Control")){
-            selected_hero = getSelectedHeroData(getRandomList(cc_heroes));
-        }else if(speciality.equals("Initiator")){
-            selected_hero = getSelectedHeroData(getRandomList(initiator_heroes));
-        }
+        List<String> selected_hero = getSelectedHeroData(getRandomHero(all_heroes));
 
         showSelectedHero(selected_hero);
     }
